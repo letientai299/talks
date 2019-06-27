@@ -1,0 +1,111 @@
+Some performance optimization
+
+Tai Le
+
+#-------------------------------------------------------------------------------
+
+* Use cheap type for context key
+
+[[https://git.garena.com/shopee/core-server/core-logic/merge_requests/42][core-logic/clog]]
+
+  - type logidKey string
+  - var logidKey = contextKey("logid")
+  + type logidKey int
+  + var logidKey = contextKey(1)
+
+- Performance gain
+
+    benchmark                    old ns/op     new ns/op     delta
+    Benchmark_logf_stdout-8      1660          1651          -0.54%
+    Benchmark_logf_fileBuf-8     1880          1878          -0.11%
+
+
+#-------------------------------------------------------------------------------
+
+* Use cheap type for context key (2)
+
+- Context key must be comparable and shoubd be use an internal package type to avoid clashing.
+- There's even cheaper types to define a single unique context key: `struct{}` or `interface{}` (but we lose ability to define more than 1 key).
+
+    BenchmarkStructKey-8    300000000            4.45 ns/op        0 B/op          0 allocs/op
+    BenchmarkIntKey-8       200000000            8.24 ns/op        8 B/op          1 allocs/op
+
+.link https://github.com/golang/go/issues/17826  How to use Context key types efficiently #17826
+
+#-------------------------------------------------------------------------------
+
+* Use string concat and strconv instead fmt if possible
+
+clog again
+
+  - log.log(level, "%s|logid=%s|%s", fileLine, logid, fmt.Sprintf(msg, v...))
+  + log.log(level, fileLine+"|logid="+logid+"|"+msg, v...)
+
+Performance gain:
+
+    benchmark                    old ns/op     new ns/op     delta
+    Benchmark_logf_stdout-8      1943          1628          -16.21%
+    Benchmark_logf_fileBuf-8     2166          1886          -12.93%
+
+    benchmark                    old allocs     new allocs     delta
+    Benchmark_logf_stdout-8      13             10             -23.08%
+    Benchmark_logf_fileBuf-8     13             10             -23.08%
+
+    benchmark                    old bytes     new bytes     delta
+    Benchmark_logf_stdout-8      477           431           -9.64%
+    Benchmark_logf_fileBuf-8     483           435           -9.94%
+
+
+* Use string concat and strconv instead fmt if possible (2)
+
+- This type of optimization tends to make the code hard to read, so, use it wisely
+
+#-------------------------------------------------------------------------------
+
+* Precomile and reused static regexp
+
+`ShopServer/util.go`, `CheckUsername`
+
+  | func CheckUsername(username string) (err error) {
+  |   if len(username) < 5 || len(username) > 30 {
+  |     err = errors.New("wrong format")
+  |     return
+  |   }
+  +   if !regexAlphanumericUnderscore.MatchString(username) {
+  -   matched, err := regexp.MatchString("^[0-9a-z_.]+$", username)
+  -   if !matched {
+  |     err = errors.New("wrong format")
+  |     return
+  |   }
+  -   matched, err = regexp.MatchString("^[0-9]+$", username)
+  -   if matched {
+  |     err = errors.New("wrong format")
+  |   }
+  |   return
+  | }
+
+#-------------------------------------------------------------------------------
+
+* Precomile and reused static regexp (2)
+
+Performance gain
+
+  benchmark                     old ns/op     new ns/op     delta
+  Benchmark_CheckUsername-8     3847          114           -97.04%
+
+  benchmark                     old allocs     new allocs     delta
+  Benchmark_CheckUsername-8     48             1              -97.92%
+
+  benchmark                     old bytes     new bytes     delta
+  Benchmark_CheckUsername-8     3168          16            -99.49%
+
+
+#-------------------------------------------------------------------------------
+
+
+* Reference
+[[https://stephen.sh/posts/quick-go-performance-improvements][Simple techniques to optimise Go programs]]
+
+(that link contains many links to more good reads)
+
+
