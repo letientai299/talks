@@ -1,0 +1,18 @@
+{
+  "separator": "<!-- slide -->",
+  "verticalSeparator": "^\n\n",
+  "controls": true,
+  "progress": true,
+  "revealOptions": {
+    "controls": true,
+    "progress": true,
+    "slideNumber": true,
+    "hash": true,
+    "history": true,
+    "keyboard": true,
+    "overview": true,
+    "help": true,
+    "transition": "none",
+    "viewDistance": 3
+  }
+}
