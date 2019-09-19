@@ -11,5 +11,9 @@ setup: ## run setup scripts to prepare development environment
 	@scripts/setup.sh
 
 .phony: build
-run: ## show build.sh help for building binnary package under cmd
+run: ## run the web server to serve all the slide
 	@reveal-md ./
+
+.phony: build
+watch: ## start nodemon to watch both reveal-md config and the slide
+	@nodemon -w . -x "reveal-md ./ --disable-auto-open"

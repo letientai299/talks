@@ -17,4 +17,15 @@ if ! has reveal-md; then
   fi
 fi
 
+if ! has nodemon; then
+  if has yarn; then
+    yarn global add nodemon
+  elif has npm; then
+    npm i -g nodemon
+  else
+    echo_warn "Nodemon not found, make watch won't work"
+  fi
+fi
+
+
 cd "$WORKING_DIR" || exit 1

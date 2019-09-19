@@ -3,9 +3,13 @@
   "verticalSeparator": "^\n\n",
   "controls": true,
   "progress": true,
+  "watch": true,
+  "port": 2909,
+  "css": "./style.css",
   "revealOptions": {
     "controls": true,
     "progress": true,
+    "center": false,
     "slideNumber": true,
     "hash": true,
     "history": true,
