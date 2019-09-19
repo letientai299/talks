@@ -1,6 +1,6 @@
 {
   "separator": "<!-- slide -->",
-  "verticalSeparator": "^\n\n",
+  "verticalSeparator": "<!-- sub -->",
   "controls": true,
   "progress": true,
   "watch": true,
@@ -8,6 +8,7 @@
   "css": "./style.css",
   "revealOptions": {
     "controls": true,
+    "controlsTutorial": false,
     "progress": true,
     "center": false,
     "slideNumber": true,

@@ -1,0 +1,276 @@
+# Function Option
+
+A pattern to implement scalable library APIs.
+
+<!-- slide -->
+
+## Disclamer
+
+- I'm not the author of this pattern.
+- Code show in this slide is faked
+
+Notes: I learn it from Rob Pike Self-referential functions articles And using
+the name Functional Option popularized by Dave Cheney because it's easier to
+remember.
+
+<!-- slide -->
+
+## Content
+
+- Problem
+  - Example: a logger packge
+  - Example: a data loading function
+- Ideas
+- Applications
+  - Example: fix the data loading function
+  - Example: another package provide options
+
+<!-- slide -->
+
+## The problem
+
+- Package/sevice/function usually starts smalls
+
+- More and more features:
+  - Its APIs become more and more complex
+  - Next features become harder to implement.
+
+<!-- slide -->
+
+## Example: item loading function
+
+Its starts simple
+
+```go
+func (dm *itemdm) load(shopid, itemid int64) Item {...}
+```
+
+<!-- slide -->
+
+Then, we need to find deleted items
+
+```go
+func (dm *itemdm) Load(
+  shopid, itemid int64,
+  needDeleted bool,
+) Item {...}
+```
+
+<!-- slide -->
+
+Then, we need models as well, to reduce requests
+
+```go
+func (dm *itemDM) Load(
+  shopid, itemid int64,
+  needModels, needDeleted bool,
+) Item {...}
+```
+
+<!-- slide -->
+
+Its usage be like:
+
+```go
+func main() {
+  dm := &ItemDM{}
+  _ = dm.Load(123, 4567, true, false)
+}
+```
+
+Code readers:
+
+_Hey, is this load deleted item without models or ...?
+Nevermind, let's check that function again._
+
+<!-- slide -->
+
+<div id="left">
+
+We're not done yet!
+
+We need some flag to:
+
+- Read from?
+  - slave
+  - cache
+- Recalcule?
+  - safe
+  - unsafe
+
+</div>
+
+<div id="right">
+
+Possible function definition
+
+```go
+func (dm *itemDM) Load(
+  shopid, itemid int64,
+  needModels bool,
+  needDeleted bool,
+  useSlaveAPI bool
+  useUnsafeAPI bool,
+) Item {...}
+```
+
+And use it like:
+
+```go
+func main() {
+  dm := &ItemDM{}
+  _ = dm.Load(123, 4567,
+    true, false, false, true,
+  )
+}
+```
+
+<div>
+
+<!-- slide -->
+
+<div class="center">
+![Are your serious](https://static.wixstatic.com/media/8bb61c_5e195db166bd44688b6ab0d61e39e15f~mv2.jpg)
+</div>
+<!-- slide -->
+
+## Example: logger
+
+It starts simple
+
+```go
+type Logger interface {
+  Printf(msg string, args... interface{})
+}
+
+func New(io.Writer) *Logger {...}
+```
+
+Its usage is simple:
+
+```go
+func main() {
+  lg := logger.New(os.Stdout)
+  lg.Printf("hello")
+  // output: main.go:3 | hello
+}
+```
+
+<!-- slide -->
+
+Then, new features:
+
+- prefix
+- log level
+
+```go
+type Logger interface {
+  Printf(msg string, args... interface{})
+  Debuf(msg string, args... interface{})
+  Errorf(msg string, args... interface{})
+}
+
+func New(
+  out io.Writer,
+  prefix string,
+  level int,
+) *Logger {...}
+```
+
+<!-- slide -->
+
+Usage still quite simple, no need a config struct yet.
+
+```go
+func main() {
+  lg := logger.New(os.Stdout, "IIS", logger.DEBUG)
+  lg.Printf("hello")
+  // output: main.go:3 | DEBUG
+}
+```
+
+<!-- slide -->
+
+<div id="left">
+
+Then more features
+
+- file rotation
+- split file by log level
+- async
+- write to network
+- serialization
+  - protobuf
+  - json
+  - text
+- ...
+
+</div>
+
+<div id="right">
+
+Need a config structs
+
+```go
+package logger
+
+type Config struct {
+  Level    string
+  LogPath        string
+  Handlers []Handler
+}
+
+type Handler struct {
+  AsyncConfig    AsyncConfig
+  FormatConfig   FormatConfig
+  RolloverConfig RolloverConfig
+}
+
+type AsyncConfig struct {...}
+type FormatConfig struct {...}
+type RolloverConfig struct {...}
+```
+
+</div>
+
+<!-- slide -->
+
+And the usage be like 😂
+
+```go
+func main() {
+  handlerConfig := logger.FileHandlerConfig{
+    Type:   "FileHandler",
+    Levels: []string{"debug", "trace", "info", "warn", "error", "fatal", "data"},
+    Sync: multilevel.LogSyncConfig{
+      SyncWrite:     syncWrite,
+      FlushInterval: 100,
+      QueueSize:     uint32(queueSize),
+    },
+    File: fileFullPath,
+    Message: multilevel.LogMessageConfig{
+      Format:       "short",
+      FieldsFormat: "text",
+      MaxBytes:     10 * 1024 * 1024,
+      MetaOption:   "All",
+    },
+    Rollover: multilevel.LogRolloverConfig{
+      RolloverSize:     "1G",
+      RolloverInterval: "1d",
+      BackupCount:      100,
+      BackupTime:       "7d",
+    },
+  }
+  ...
+}
+```
+
+<!-- slide -->
+
+## References
+
+- [Self-referential functions and the design of options](https://commandcenter.blogspot.com/2014/01/self-referential-functions-and-design.html)
+  by Rob Pike, 2014/01
+- [Functional options for friendly APIs](https://dave.cheney.net/2014/10/17/functional-options-for-friendly-apis)
+  by Dave Cheney, 2014/10
+- [Visitor pattern](https://en.wikipedia.org/wiki/Visitor_pattern) by Gang of four, 1994

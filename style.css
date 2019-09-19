@@ -5,3 +5,23 @@
   margin-left: 0;
   margin-right: 0;
 }
+
+#left {
+	margin: 10px 0 15px 20px;
+	text-align: left;
+	float: left;
+	z-index:-10;
+	width:40;
+	font-size: 0.85em;
+	line-height: 1.5;
+}
+
+#right {
+	margin: 10px 0 15px 0;
+	float: right;
+	text-align: left;
+	z-index:-10;
+	width:58%;
+	font-size: 0.85em;
+	line-height: 1.5;
+}

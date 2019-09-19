@@ -16,4 +16,4 @@ run: ## run the web server to serve all the slide
 
 .phony: build
 watch: ## start nodemon to watch both reveal-md config and the slide
-	@nodemon -w . -x "reveal-md ./ --disable-auto-open"
+	@nodemon -w . -e "*" -x "reveal-md ./ --disable-auto-open"
