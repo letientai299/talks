@@ -1,4 +1,4 @@
-# Function Option
+# Functional Option
 
 A pattern to implement scalable library APIs.
 
@@ -6,8 +6,11 @@ A pattern to implement scalable library APIs.
 
 ## Disclamer
 
-- I'm not the author of this pattern.
-- Code show in this slide is faked
+- I'm not the author of the pattern introduce here. I just show a way to apply
+  it when building package.
+
+- Code show in this slide is faked, and the style is not nice due to spacing
+  constraint in a slide.
 
 Notes: I learn it from Rob Pike Self-referential functions articles And using
 the name Functional Option popularized by Dave Cheney because it's easier to
@@ -18,12 +21,9 @@ remember.
 ## Content
 
 - Problem
-  - Example: a logger packge
-  - Example: a data loading function
+- Example
 - Ideas
 - Applications
-  - Example: fix the data loading function
-  - Example: another package provide options
 
 <!-- slide -->
 
@@ -102,13 +102,12 @@ We need some flag to:
 
 <div id="right">
 
-Possible function definition
+Easy, just change it to:
 
 ```go
-func (dm *itemDM) Load(
+func (dm *ItemDM) Load(
   shopid, itemid int64,
   needModels bool,
-  needDeleted bool,
   useSlaveAPI bool
   useUnsafeAPI bool,
 ) Item {...}
@@ -129,9 +128,10 @@ func main() {
 
 <!-- slide -->
 
-<div class="center">
 ![Are your serious](https://static.wixstatic.com/media/8bb61c_5e195db166bd44688b6ab0d61e39e15f~mv2.jpg)
-</div>
+
+Notes: ask audience if they want to skip next example
+
 <!-- slide -->
 
 ## Example: logger
@@ -261,9 +261,211 @@ func main() {
       BackupTime:       "7d",
     },
   }
+
+  //
+  // that's just the Handler!
+  //
   ...
 }
 ```
+
+<!-- slide -->
+
+## Ideas
+
+- Define a config struct
+- Define sensible default
+- _Define a scalable interface_
+- _Provide some optional functions_ help user modify the config to the state
+  their need.
+
+Notes: let do it step by step
+
+<!-- slide -->
+
+### Define a config struct
+
+```go
+type Option struct {
+  useSlave    bool
+  useUnsafe   bool
+  needModels  bool
+  needDeleted bool
+}
+```
+
+### Define sensible default
+
+```go
+func defaultOps() *Option {
+  return &Option{
+    useSlave:  !globalCfg.UseCache,
+    useUnsafe: false, // must be set explicitly
+  }
+}
+```
+
+<!-- slide -->
+
+### Define a scalabel interface
+
+```go
+func (dm *ItemDM) Load(
+  shopid, itemid int64,
+  mods... OptionMod,
+) Item {...}
+
+// OptionMod is a function that modifies the input Option
+type OptionMod func(o *Option)
+```
+
+- The `OptionMod` are optional arguments.
+- We can provide more `OptionMod` as we adding more features.
+- Existing code won't break because our API doesn't change.
+
+<!-- slide -->
+
+### Provide option functions
+
+```go
+func UseSlaveAPI(b bool) OptionMod {
+  return func(o *Option) {o.useSlave = b}
+}
+func UseUnsafeAPI(b bool) OptionMod {
+  return func(o *Option) {o.useUnsafe = b}
+}
+func NeedModels(b bool) OptionMod {
+  return func(o *Option) {o.needModels = b}
+}
+func NeedDeletedItem(b bool) OptionMod {
+  return func(o *Option) {o.needDeleted = b}
+}
+```
+
+- Each one is short, easy to skim, clearly self-documented
+
+<!-- slide -->
+
+### API Usage
+
+```go
+func main() {
+  dm := &ItemDM{}
+  // defualt option
+  item, := dm.Load(123, 4567)
+  // use custormized config
+  item, := dm.Load(123, 4567,
+    NeedModels(globalCfg.LoadModels)
+  )
+
+  item, := dm.Load(123, 4567,
+    UseUnsafeAPI(true), NeedModels(false),
+    needDeleted(true), useSlaveAPI(false)
+  )
+}
+```
+
+- Clear usage intention
+- Safe to refactor or reorder `OptionMod`
+
+<!-- slide -->
+
+### Downsides
+
+- More functions to defines
+- Naming those functions might be hard.
+- Usage code is more verbose
+
+<!-- slide -->
+
+## Applications
+
+Open source
+
+- sqlboiler: a Go ORM generator
+
+Shopee Internal
+
+- `ItemInfoClient.go` in Core Server
+- `sps.NewAgent()` in sps lib.
+- `spkit.Client()` and `spkit.Server()`
+
+<!-- slide -->
+
+### sqlboiler
+
+Example from their readme.
+
+```go
+// Query all users
+users, err := models.Users().All(ctx, db)
+
+// complex query
+users, err := models.Users(
+  Where("age > ?", 30),
+  Limit(5),
+  Offset(6),
+).All(ctx, db)
+```
+
+<!-- slide -->
+
+### sps
+
+```go
+func NewAgent(opts ...InitOption) (ag Agent, err error) {...}
+// usage
+sps.NewAgent(
+  sps.WithInstanceID(iid),
+  sps.WithConfigKey(cfg.ConfigKey),
+)
+
+// Init global agent
+func Init(opts ...InitOption) error {...}
+// Usage
+_ = sps.Init(
+  sps.WithInstanceID(iid),
+  sps.WithConfigKey(configKey),
+)
+```
+
+Btw, that lib has a function that drive me crazy
+
+```go
+_, _ := sps.GenerateInstanceID(
+  "item.info", "", "", "", "", ""
+)
+```
+
+_Which of the 4 strings to put "test" as env name?_
+
+<!-- slide -->
+
+### spkit
+
+```go
+// Client creates a cobra Command for the API client.
+func Client(
+  pcs []*sps.ProcessorConfig,
+  configKey string,
+  ops ...MetaModFn,
+) *cobra.Command {...}
+
+// usage
+_ := spkit.Client(
+  processor.AllProcessorConfigs(),
+  config.DefaultSpConfigKey,
+  // built-in option functions
+  spkit.WithListCmd(getListSources()...),
+  spkit.WithLogger(config.Logger())
+  // user declared option function
+  func(m *util.ServiceMetadata) {m.Version = config.Version()},
+)
+```
+
+<!-- slide -->
+
+## Q&A
 
 <!-- slide -->
 
@@ -274,3 +476,8 @@ func main() {
 - [Functional options for friendly APIs](https://dave.cheney.net/2014/10/17/functional-options-for-friendly-apis)
   by Dave Cheney, 2014/10
 - [Visitor pattern](https://en.wikipedia.org/wiki/Visitor_pattern) by Gang of four, 1994
+- [Go patterns](https://github.com/tmrts/go-patterns)
+
+<!-- slide -->
+
+## Thanks
