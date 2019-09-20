@@ -14,7 +14,7 @@
 ### Golang
 
 - [Some performance tips](./2019/some-perf-tips/some-perf-tips.slide) (golang slide, not revealjs yet)
-- [Function option](./2019/function-option/readme.md)
+- [Functional option](./2019/functional-option/readme.md)
 - [Functional programming](./2019/function-programming-go/readme.md)
 - Goland (IDE) tip and tricks
 - ZSH setup
