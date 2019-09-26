@@ -6,7 +6,7 @@ Tai Le
 
 * Use cheap type for context key
 
-[[https://git.garena.com/shopee/core-server/core-logic/merge_requests/42][core-logic/clog]]
+In our internal log lib:
 
   - type logidKey string
   - var logidKey = contextKey("logid")
@@ -64,20 +64,20 @@ Performance gain:
 
 * Precomile and reused static regexp
 
-`ShopServer/util.go`, `CheckUsername`
+Consider following function that validate if the string has valid pattern
 
-  | func CheckUsername(username string) (err error) {
-  |   if len(username) < 5 || len(username) > 30 {
+  | func check(str string) (err error) {
+  |   if len(username) < 5 || len(str) > 30 {
   |     err = errors.New("wrong format")
   |     return
   |   }
-  +   if !regexAlphanumericUnderscore.MatchString(username) {
-  -   matched, err := regexp.MatchString("^[0-9a-z_.]+$", username)
+  +   if !regexValidformat.MatchString(str) {
+  -   matched, err := regexp.MatchString("^[0-9a-z_.]+$", str)
   -   if !matched {
   |     err = errors.New("wrong format")
   |     return
   |   }
-  -   matched, err = regexp.MatchString("^[0-9]+$", username)
+  -   matched, err = regexp.MatchString("^[0-9]+$", str)
   -   if matched {
   |     err = errors.New("wrong format")
   |   }
@@ -91,13 +91,13 @@ Performance gain:
 Performance gain
 
   benchmark                     old ns/op     new ns/op     delta
-  Benchmark_CheckUsername-8     3847          114           -97.04%
+  Benchmark_check-8             3847          114           -97.04%
 
   benchmark                     old allocs     new allocs     delta
-  Benchmark_CheckUsername-8     48             1              -97.92%
+  Benchmark_check-8             48             1              -97.92%
 
   benchmark                     old bytes     new bytes     delta
-  Benchmark_CheckUsername-8     3168          16            -99.49%
+  Benchmark_check-8             3168          16            -99.49%
 
 
 #-------------------------------------------------------------------------------

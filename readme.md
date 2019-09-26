@@ -16,7 +16,7 @@
 - [Some performance tips](./2019/some-perf-tips/some-perf-tips.slide) (golang slide, not revealjs yet)
 - [Functional option](./2019/functional-option)
 - [Functional programming](./2019/function-programming-go)
-- Goland (IDE) tip and tricks
+- [Goland (IDE) tip and tricks](./2019/jetbrains-tips)
 - ZSH setup
 - Refactoring
 - spkit introduction (side project for building new micro service within Shopee)

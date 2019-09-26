@@ -42,7 +42,7 @@ remember.
 Its starts simple
 
 ```go
-func (dm *itemdm) load(shopid, itemid int64) Item {...}
+func (dm *Loader) load(shopid, itemid int64) Item {...}
 ```
 
 <!-- slide -->
@@ -50,7 +50,7 @@ func (dm *itemdm) load(shopid, itemid int64) Item {...}
 Then, we need to find deleted items
 
 ```go
-func (dm *itemdm) Load(
+func (dm *Loader) Load(
   shopid, itemid int64,
   needDeleted bool,
 ) Item {...}
@@ -61,7 +61,7 @@ func (dm *itemdm) Load(
 Then, we need models as well, to reduce requests
 
 ```go
-func (dm *itemDM) Load(
+func (dm *Loader) Load(
   shopid, itemid int64,
   needModels, needDeleted bool,
 ) Item {...}
@@ -73,7 +73,7 @@ Its usage be like:
 
 ```go
 func main() {
-  dm := &ItemDM{}
+  dm := &Loader{}
   _ = dm.Load(123, 4567, true, false)
 }
 ```
@@ -105,7 +105,7 @@ We need some flag to:
 Easy, just change it to:
 
 ```go
-func (dm *ItemDM) Load(
+func (dm *Loader) Load(
   shopid, itemid int64,
   needModels bool,
   useSlaveAPI bool
@@ -117,7 +117,7 @@ And use it like:
 
 ```go
 func main() {
-  dm := &ItemDM{}
+  dm := &Loader{}
   _ = dm.Load(123, 4567,
     true, false, false, true,
   )
@@ -310,7 +310,7 @@ func defaultOps() *Option {
 ### Define a scalabel interface
 
 ```go
-func (dm *ItemDM) Load(
+func (dm *Loader) Load(
   shopid, itemid int64,
   mods... OptionMod,
 ) Item {...}
@@ -350,7 +350,7 @@ func NeedDeletedItem(b bool) OptionMod {
 
 ```go
 func main() {
-  dm := &ItemDM{}
+  dm := &Loader{}
   // defualt option
   item, := dm.Load(123, 4567)
   // use custormized config
