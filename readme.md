@@ -9,19 +9,24 @@
 
 <!-- slide -->
 
+## Ideas
+
+- ZSH setup
+- Build an ID Generator for distributed system
+
+<!-- slide -->
+
+## 2020
+
+- [Functional programming](./2020/functional-programming-go/readme.md)
+
+<!-- slide -->
+
 ## 2019
 
-### Golang
-
-- [Some performance tips](./2019/some-perf-tips/some-perf-tips.slide) (golang slide, not revealjs yet)
-- [Functional option](./2019/functional-option)
-- [Functional programming](./2020/function-programming-go)
-- [Goland (IDE) tip and tricks](./2019/jetbrains-tips)
-- ZSH setup
-- Refactoring
-- spkit introduction (side project for building new micro service within Shopee)
-- build an ID Generator for distributed system
-
+- [Some performance tips](2019/some-perf-tips/some-perf-tips.slide) (golang slide, not revealjs yet)
+- [Functional option](2019/functional-option/readme.md)
+- [Goland (IDE) tip and tricks](./2019/jetbrains-tips/readme.md)
 <!-- slide -->
 
 ## Present

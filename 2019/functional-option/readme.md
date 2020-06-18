@@ -239,26 +239,26 @@ And the usage be like 😂
 
 ```go
 func main() {
-  handlerConfig := logger.FileHandlerConfig{
-    Type:   "FileHandler",
+  cfg := log.FileHandlerConfig{
+    Type:   "File",
     Levels: []string{"debug", "trace", "info", "warn", "error", "fatal", "data"},
-    Sync: multilevel.LogSyncConfig{
-      SyncWrite:     syncWrite,
-      FlushInterval: 100,
-      QueueSize:     uint32(queueSize),
+    Sync: multi.SyncConfig{
+      Sync:     syncWrite,
+      Interval: 100,
+      Size:     uint32(queueSize),
     },
-    File: fileFullPath,
-    Message: multilevel.LogMessageConfig{
+    File: fullPath,
+    Message: multi.MessageConfig{
       Format:       "short",
       FieldsFormat: "text",
       MaxBytes:     10 * 1024 * 1024,
       MetaOption:   "All",
     },
-    Rollover: multilevel.LogRolloverConfig{
-      RolloverSize:     "1G",
-      RolloverInterval: "1d",
-      BackupCount:      100,
-      BackupTime:       "7d",
+    Rollover: multi.RolloverConfig{
+      Size:       "1G",
+      Interval:   "1d",
+      BackupCount: 100,
+      BackupTime:  "7d",
     },
   }
 
@@ -387,8 +387,8 @@ Open source
 Shopee Internal
 
 - `ItemInfoClient.go` in Core Server
-- `sps.NewAgent()` in sps lib.
-- `spkit.Client()` and `spkit.Server()`
+- `spx.New()` in spx lib.
+- `spk.Client()` and `spk.Server()`
 
 <!-- slide -->
 
@@ -410,29 +410,31 @@ users, err := models.Users(
 
 <!-- slide -->
 
-### sps
+### spx
 
 ```go
 func NewAgent(opts ...InitOption) (ag Agent, err error) {...}
 // usage
-sps.NewAgent(
-  sps.WithInstanceID(iid),
-  sps.WithConfigKey(cfg.ConfigKey),
+spx.New(
+  spx.WithID(iid),
+  spx.WithKey(cfg.Key),
 )
 
 // Init global agent
 func Init(opts ...InitOption) error {...}
 // Usage
-_ = sps.Init(
-  sps.WithInstanceID(iid),
-  sps.WithConfigKey(configKey),
+_ = spx.Init(
+  spx.WithID(iid),
+  spx.WithKey(configKey),
 )
 ```
 
-Btw, that lib has a function that drive me crazy
+<!-- slide -->
+
+Btw, this drives me crazy
 
 ```go
-_, _ := sps.GenerateInstanceID(
+_, _ := spx.GenerateID(
   "item.info", "", "", "", "", ""
 )
 ```
@@ -441,25 +443,25 @@ _Which of the 4 strings to put "test" as env name?_
 
 <!-- slide -->
 
-### spkit
+### spk
 
 ```go
 // Client creates a cobra Command for the API client.
 func Client(
-  pcs []*sps.ProcessorConfig,
+  pcs []*spx.ProcessorConfig,
   configKey string,
   ops ...MetaModFn,
 ) *cobra.Command {...}
 
 // usage
-_ := spkit.Client(
-  processor.AllProcessorConfigs(),
-  config.DefaultSpConfigKey,
+_ := spk.Client(
+  processor.ProcessorConfigs(),
+  config.DefaultConfigKey,
   // built-in option functions
-  spkit.WithListCmd(getListSources()...),
-  spkit.WithLogger(config.Logger())
+  spk.WithListCmd(getListSources()...),
+  spk.WithLogger(config.Logger())
   // user declared option function
-  func(m *util.ServiceMetadata) {m.Version = config.Version()},
+  func(m *util.Metadata) {m.Version = config.Version()},
 )
 ```
 
